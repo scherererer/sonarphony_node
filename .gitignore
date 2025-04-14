@@ -1,0 +1,5 @@
+CTestConfiguration.ini
+CTestCustom.cmake
+build/
+install/
+log/
