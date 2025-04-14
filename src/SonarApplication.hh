@@ -43,8 +43,8 @@ private:
 
     std::shared_ptr<SonarNode> mNode;
 
-	/// \brief Connection to the sonar unit
-	sonarphony::sonarConnection_t mConnection;
+    /// \brief Connection to the sonar unit
+    sonarphony::sonarConnection_t mConnection;
 };
 
 }
