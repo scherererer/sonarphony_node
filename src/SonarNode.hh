@@ -21,6 +21,7 @@
 #include "sonarphony/pingMsg.hh"
 
 #include <marine_acoustic_msgs/msg/raw_sonar_image.hpp>
+#include <marine_acoustic_msgs/msg/sonar_ranges.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace sonarphony_node
@@ -39,7 +40,7 @@ protected:
 
 private:
     rclcpp::Publisher<marine_acoustic_msgs::msg::RawSonarImage>::SharedPtr mPubImage;
-    rclcpp::Publisher<marine_acoustic_msgs::msg::RawSonarImage>::SharedPtr mPubDet;
+    rclcpp::Publisher<marine_acoustic_msgs::msg::SonarRanges>::SharedPtr mPubRanges;
     rclcpp::TimerBase::SharedPtr mTimer;
 };
 
