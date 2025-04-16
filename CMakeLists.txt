@@ -18,6 +18,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(marine_acoustic_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sonarphony_msgs REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Network SerialPort)
 
 add_executable(sonarphony_node
@@ -28,7 +29,11 @@ add_executable(sonarphony_node
 	src/SonarApplication.hh
 )
 
-ament_target_dependencies(sonarphony_node rclcpp marine_acoustic_msgs std_msgs)
+ament_target_dependencies(sonarphony_node
+  rclcpp
+  sonarphony_msgs
+  marine_acoustic_msgs
+  std_msgs)
 target_link_libraries(sonarphony_node Qt6::Core libsonarphony)
 
 install(TARGETS

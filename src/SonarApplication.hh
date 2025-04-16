@@ -37,6 +37,7 @@ public:
 private slots:
     void runSome();
 	void handlePing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing);
+	void serialNumberChanged ();
 
 private:
     QTimer mTimer;

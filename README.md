@@ -13,6 +13,15 @@ sudo apt install qt6-serialport-dev
 sudo apt install ros-jazzy-marine-acoustic-msgs
 ```
 
+Install native messages
+
+```
+git clone https://github.com/scherererer/sonarphony_msgs.git
+cd sonarphony_msgs
+colcon build
+. ./install/setup.bash
+```
+
 ## Installation
 
 ```

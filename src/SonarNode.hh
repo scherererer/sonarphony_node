@@ -20,8 +20,11 @@
 
 #include "sonarphony/pingMsg.hh"
 
+#include "sonarphony_msgs/msg/sonar_phony_native.hpp"
+
 #include <marine_acoustic_msgs/msg/raw_sonar_image.hpp>
 #include <marine_acoustic_msgs/msg/sonar_ranges.hpp>
+#include <std_msgs/msg/string.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 namespace sonarphony_node
@@ -35,13 +38,13 @@ public:
 
     void publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing);
 
-protected:
-    void on_timer();
+    void publishSerialNumber(std::string const &aSerialNumber);
 
 private:
     rclcpp::Publisher<marine_acoustic_msgs::msg::RawSonarImage>::SharedPtr mPubImage;
     rclcpp::Publisher<marine_acoustic_msgs::msg::SonarRanges>::SharedPtr mPubRanges;
-    rclcpp::TimerBase::SharedPtr mTimer;
+    rclcpp::Publisher<sonarphony_msgs::msg::SonarPhonyNative>::SharedPtr mPubNative;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr mPubSerial;
 };
 
 }

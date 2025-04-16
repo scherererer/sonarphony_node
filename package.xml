@@ -3,7 +3,7 @@
 <package format="3">
   <name>sonarphony_node</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Publishes from sonarphony fishfinder to ROS</description>
   <maintainer email="mscherer3@gatech.edu">Michael</maintainer>
   <license>GPL-3.0-only</license>
 
@@ -11,6 +11,7 @@
 
   <depend>rclcpp</depend>
   <depend>marine_acoustic_msgs</depend>
+  <depend>sonarphony_msgs</depend>
   <depend>std_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>

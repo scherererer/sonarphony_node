@@ -33,12 +33,11 @@ SonarNode::~SonarNode()
 
 SonarNode::SonarNode()
     : Node("sonar_node")
-    , mPubImage(create_publisher<marine_acoustic_msgs::msg::RawSonarImage>("sonar_image", 1))
-    , mPubRanges(create_publisher<marine_acoustic_msgs::msg::SonarRanges>("sonar_ranges", 1))
-    , mTimer()
+    , mPubImage(create_publisher<marine_acoustic_msgs::msg::RawSonarImage>("sonarphony/image", 1))
+    , mPubRanges(create_publisher<marine_acoustic_msgs::msg::SonarRanges>("sonarphony/ranges", 1))
+    , mPubNative(create_publisher<sonarphony_msgs::msg::SonarPhonyNative>("sonarphony/native", 1))
+    , mPubSerial(create_publisher<std_msgs::msg::String>("sonarphony/serial", 1))
 {
-    // Use a timer to schedule periodic message publishing.
-    mTimer = create_wall_timer(1s, [this]() {return this->on_timer();});
 }
 
 void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
@@ -48,8 +47,38 @@ void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
     rclcpp::Time ros_timestamp(seconds, nanoseconds);
 
     // Feet to meters
-    double const range = aPing.depth() * 0.3048;
+    double constexpr const FT2M = 0.3048;
+    double const range = aPing.depth() * FT2M;
 
+    {
+        sonarphony_msgs::msg::SonarPhonyNative msg;
+
+        msg.header.stamp = ros_timestamp;
+        msg.header.frame_id = "sonarphony_frame";
+
+        // Minimum range of watercolumn data (meters)
+        msg.min_range = aPing.minRange() * FT2M;
+        // Maximum range of watercolumn data (meters)
+        msg.max_range = aPing.maxRange() * FT2M;
+
+        // Waterdepth / range to detected hard bottom (meters)
+        msg.range = range;
+
+        // Temperature in degrees C
+        msg.temperature = aPing.temperature();
+
+        // Battery voltage in volts
+        msg.battery_voltage = aPing.batteryVoltage();
+
+        // Battery level (0-100%)
+        msg.battery_level = aPing.batteryLevel();
+
+        // Watercolumn data
+        auto rawData = reinterpret_cast<const unsigned char *>(aPing.pingData());
+        msg.data = std::vector<uint8_t>(rawData, rawData + aPing.pingSize());
+
+        mPubNative->publish(std::move(msg));
+    }
     {
         marine_acoustic_msgs::msg::RawSonarImage msg;
 
@@ -177,7 +206,13 @@ void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
     }
 }
 
-void SonarNode::on_timer()
+void SonarNode::publishSerialNumber(std::string const &aSerialNumber)
 {
+    std_msgs::msg::String msg;
+
+    msg.data = aSerialNumber;
+
+    mPubSerial->publish(std::move(msg));
 }
+
 

@@ -66,3 +66,8 @@ void SonarApplication::handlePing(quint64 aTstamp,
     mNode->publishPing(aTstamp, aPing);
 }
 
+void SonarApplication::serialNumberChanged ()
+{
+    mNode->publishSerialNumber(mConnection.serialNumber());
+}
+
