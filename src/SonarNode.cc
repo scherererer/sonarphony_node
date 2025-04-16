@@ -64,13 +64,8 @@ void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
         // Speed of sound (m/s) used to calculate ranges;
         // Set to 0 if unavailable
         //msg.ping_info.sound_speed = 0;
+        // NOTE: Using an assumed speed of sound value
         msg.ping_info.sound_speed = 1500;
-
-        //double range = double(sample_number) *
-        //   wc_msg->ping_info.sound_speed /
-        //        (2.0 * wc_msg->sample_rate);
-         double sample_rate = double(aPing.pingSize()) *
-            msg.ping_info.sound_speed / (2.0 * aPing.maxRange() * 0.3048);
 
         // Sonar reported -3db beamwidths
         // May be empty if not reported
@@ -81,8 +76,10 @@ void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
 
         // hz
         //float32 sample_rate
-        // TODO: Not sure what this value is
         //msg.sample_rate = 0;
+        // NOTE: This is a fake sample rate
+        double sample_rate = double(aPing.pingSize()) *
+            msg.ping_info.sound_speed / (2.0 * aPing.maxRange() * 0.3048);
         msg.sample_rate = sample_rate;
 
         // the number of samples in each beam
