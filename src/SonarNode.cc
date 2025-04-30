@@ -19,6 +19,8 @@
 #include "SonarNode.hh"
 using namespace sonarphony_node;
 
+#include <QMetaObject>
+
 #include <rclcpp/rclcpp.hpp>
 
 #include <chrono>
@@ -31,13 +33,53 @@ SonarNode::~SonarNode()
 {
 }
 
-SonarNode::SonarNode()
+SonarNode::SonarNode(std::shared_ptr<sonarphony::sonarConnection_t> aConnection)
     : Node("sonar_node")
+    , mConnection(std::move(aConnection))
+    , mTimer(create_wall_timer(500ms, std::bind(&SonarNode::rotateFrequency, this)))
     , mPubImage(create_publisher<marine_acoustic_msgs::msg::RawSonarImage>("sonarphony/image", 1))
     , mPubRanges(create_publisher<marine_acoustic_msgs::msg::SonarRanges>("sonarphony/ranges", 1))
     , mPubNative(create_publisher<sonarphony_msgs::msg::SonarPhonyNative>("sonarphony/native", 1))
     , mPubSerial(create_publisher<std_msgs::msg::String>("sonarphony/serial", 1))
+    , mSetRange(create_service<sonarphony_msgs::srv::SetSonarPhonyRange>(
+        "sonarphony/set_range", std::bind(&SonarNode::handleSetRange, this,
+            std::placeholders::_1, std::placeholders::_2)))
+    , mSetFreq(create_service<sonarphony_msgs::srv::SetSonarPhonyFrequency>(
+        "sonarphony/set_frequency", std::bind(&SonarNode::handleSetFrequency, this,
+            std::placeholders::_1, std::placeholders::_2)))
+    , mSelectedFrequencies(1U | 4U)
+    , mPeriod(500ms)
+    , mCurrentFrequency(0)
 {
+}
+
+void SonarNode::rotateFrequency()
+{
+    assert(mSelectedFrequencies > 0);
+
+    while(true)
+    {
+        ++mCurrentFrequency;
+        if(mCurrentFrequency > 3)
+            mCurrentFrequency = 0;
+
+        if((mSelectedFrequencies >> mCurrentFrequency) & 0x01)
+            break;
+    }
+
+    using namespace sonarphony;
+
+    sonarConnection_t::frequency_t f = sonarConnection_t::F_125;
+
+    switch(mCurrentFrequency)
+    {
+    case 0: f = sonarConnection_t::F_80; break;
+    case 1: f = sonarConnection_t::F_125; break;
+    case 2: f = sonarConnection_t::F_200; break;
+    }
+
+    QMetaObject::invokeMethod(mConnection.get(), "setFrequency", Qt::QueuedConnection,
+                              Q_ARG(sonarConnection_t::frequency_t, f));
 }
 
 void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
@@ -72,6 +114,9 @@ void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
 
         // Battery level (0-100%)
         msg.battery_level = aPing.batteryLevel();
+
+        msg.frequency = aPing.frequency();
+        msg.beam_width = aPing.beamWidth() * M_PI/180.0;
 
         // Watercolumn data
         auto rawData = reinterpret_cast<const unsigned char *>(aPing.pingData());
@@ -215,4 +260,47 @@ void SonarNode::publishSerialNumber(std::string const &aSerialNumber)
     mPubSerial->publish(std::move(msg));
 }
 
+void SonarNode::handleSetRange(
+    std::shared_ptr<sonarphony_msgs::srv::SetSonarPhonyRange::Request> const aReq,
+    std::shared_ptr<sonarphony_msgs::srv::SetSonarPhonyRange::Response> const aRes)
+{
+    if(aReq->min_range < 0 || aReq->max_range < aReq->min_range)
+    {
+        aRes->success = false;
+        aRes->message = "Invalid range, must be positive, and max>min";
+        return;
+    }
+
+    QMetaObject::invokeMethod(mConnection.get(), "setRange", Qt::QueuedConnection,
+                              Q_ARG(double, aReq->min_range),
+                              Q_ARG(double, aReq->max_range));
+
+    aRes->success = true;
+}
+
+void SonarNode::handleSetFrequency(
+    std::shared_ptr<sonarphony_msgs::srv::SetSonarPhonyFrequency::Request> const aReq,
+    std::shared_ptr<sonarphony_msgs::srv::SetSonarPhonyFrequency::Response> const aRes)
+{
+    if(aReq->period < 0)
+    {
+        aRes->success = false;
+        aRes->message = "Period must be >= 0";
+        return;
+    }
+    else if(aReq->frequency > 7)
+    {
+        aRes->success = false;
+        aRes->message = "Invalid frequency selection";
+        return;
+    }
+
+    mPeriod = std::chrono::milliseconds(int(aReq->period * 1000));
+    mSelectedFrequencies = aReq->frequency;
+
+    mTimer->cancel();
+    mTimer = create_wall_timer(mPeriod, std::bind(&SonarNode::rotateFrequency, this));
+
+    aRes->success = true;
+}
 

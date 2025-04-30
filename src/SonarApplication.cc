@@ -29,8 +29,8 @@ SonarApplication::~SonarApplication()
 SonarApplication::SonarApplication()
     : QObject()
     , mTimer()
-    , mNode(std::make_shared<SonarNode>())
-    , mConnection(this)
+    , mConnection(std::make_shared<sonarphony::sonarConnection_t>(this))
+    , mNode(std::make_shared<SonarNode>(mConnection))
 {
     mTimer.setInterval(50);
     mTimer.setSingleShot(false);
@@ -40,9 +40,9 @@ SonarApplication::SonarApplication()
 
     mTimer.start();
 
-	connect (&mConnection, &sonarphony::sonarConnection_t::ping,
+	connect (mConnection.get(), &sonarphony::sonarConnection_t::ping,
 	         this, &SonarApplication::handlePing);
-	mConnection.start ();
+	mConnection->start ();
 }
 
 void SonarApplication::runSome()
@@ -68,6 +68,6 @@ void SonarApplication::handlePing(quint64 aTstamp,
 
 void SonarApplication::serialNumberChanged ()
 {
-    mNode->publishSerialNumber(mConnection.serialNumber());
+    mNode->publishSerialNumber(mConnection->serialNumber());
 }
 

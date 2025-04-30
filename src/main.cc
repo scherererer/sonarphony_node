@@ -30,12 +30,15 @@ using namespace std::chrono_literals;
 
 int main(int aArgc, char **aArgv)
 {
+    qRegisterMetaType<sonarphony::sonarConnection_t::frequency_t>("sonarConnection_t::frequency_t");
+    qRegisterMetaType<sonarphony::sonarConnection_t::frequency_t>("sonarphony::sonarConnection_t::frequency_t");
+
     rclcpp::init(aArgc, aArgv);
 	QCoreApplication app(aArgc, aArgv);
 
     SonarApplication sa;
 
-	int code = app.exec();
+    int code = app.exec();
 
     rclcpp::shutdown();
 

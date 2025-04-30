@@ -25,6 +25,9 @@
 #include <QObject>
 #include <QTimer>
 
+#include <memory>
+
+
 namespace sonarphony_node
 {
 
@@ -42,10 +45,10 @@ private slots:
 private:
     QTimer mTimer;
 
-    std::shared_ptr<SonarNode> mNode;
-
     /// \brief Connection to the sonar unit
-    sonarphony::sonarConnection_t mConnection;
+    std::shared_ptr<sonarphony::sonarConnection_t> mConnection;
+
+    std::shared_ptr<SonarNode> mNode;
 };
 
 }

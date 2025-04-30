@@ -19,13 +19,19 @@
 #pragma once
 
 #include "sonarphony/pingMsg.hh"
+#include "sonarphony/sonarConnection.hh"
 
 #include "sonarphony_msgs/msg/sonar_phony_native.hpp"
+#include "sonarphony_msgs/srv/set_sonar_phony_range.hpp"
+#include "sonarphony_msgs/srv/set_sonar_phony_frequency.hpp"
 
 #include <marine_acoustic_msgs/msg/raw_sonar_image.hpp>
 #include <marine_acoustic_msgs/msg/sonar_ranges.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <rclcpp/rclcpp.hpp>
+
+#include <chrono>
+#include <memory>
 
 namespace sonarphony_node
 {
@@ -34,17 +40,37 @@ class SonarNode : public rclcpp::Node
 {
 public:
     virtual ~SonarNode();
-    SonarNode();
+    SonarNode(std::shared_ptr<sonarphony::sonarConnection_t> aConnection);
+
+    void rotateFrequency();
 
     void publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing);
 
     void publishSerialNumber(std::string const &aSerialNumber);
 
+    void handleSetRange(
+        std::shared_ptr<sonarphony_msgs::srv::SetSonarPhonyRange::Request> const aReq,
+        std::shared_ptr<sonarphony_msgs::srv::SetSonarPhonyRange::Response> const aRes);
+    void handleSetFrequency(
+        std::shared_ptr<sonarphony_msgs::srv::SetSonarPhonyFrequency::Request> const aReq,
+        std::shared_ptr<sonarphony_msgs::srv::SetSonarPhonyFrequency::Response> const aRes);
+
 private:
+    std::shared_ptr<sonarphony::sonarConnection_t> mConnection;
+
+    rclcpp::TimerBase::SharedPtr mTimer;
+
     rclcpp::Publisher<marine_acoustic_msgs::msg::RawSonarImage>::SharedPtr mPubImage;
     rclcpp::Publisher<marine_acoustic_msgs::msg::SonarRanges>::SharedPtr mPubRanges;
     rclcpp::Publisher<sonarphony_msgs::msg::SonarPhonyNative>::SharedPtr mPubNative;
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr mPubSerial;
+
+    rclcpp::Service<sonarphony_msgs::srv::SetSonarPhonyRange>::SharedPtr mSetRange;
+    rclcpp::Service<sonarphony_msgs::srv::SetSonarPhonyFrequency>::SharedPtr mSetFreq;
+
+    unsigned char mSelectedFrequencies;
+    std::chrono::milliseconds mPeriod;
+    unsigned char mCurrentFrequency;
 };
 
 }
