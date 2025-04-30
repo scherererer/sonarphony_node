@@ -132,8 +132,7 @@ void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
 
         // Center frequency of sonar in Hz
         // Set to 0 if unavailable
-        // TODO: This varies based on model, this is the default for the T-POD
-        msg.ping_info.frequency = 125000;
+        msg.ping_info.frequency = aPing.frequency();
 
         // Speed of sound (m/s) used to calculate ranges;
         // Set to 0 if unavailable
@@ -144,9 +143,9 @@ void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
         // Sonar reported -3db beamwidths
         // May be empty if not reported
         // reported in radians
-        // TODO: Default for T-POD, but not the same for the other models
-        msg.ping_info.tx_beamwidths = std::vector<float> {30.0 * M_PI / 180.0};
-        msg.ping_info.rx_beamwidths = std::vector<float> {30.0 * M_PI / 180.0};
+        float const beamwidth = aPing.beamWidth() * M_PI/180.0;
+        msg.ping_info.tx_beamwidths = std::vector<float> {beamwidth};
+        msg.ping_info.rx_beamwidths = std::vector<float> {beamwidth};
 
         // hz
         //float32 sample_rate
@@ -202,8 +201,7 @@ void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
 
         // Center frequency of sonar in Hz
         // Set to 0 if unavailable
-        // TODO: This varies based on model, this is the default for the T-POD
-        msg.ping_info.frequency = 125000;
+        msg.ping_info.frequency = aPing.frequency();
 
         // Speed of sound (m/s) used to calculate ranges;
         // Set to 0 if unavailable
@@ -212,9 +210,9 @@ void SonarNode::publishPing(quint64 aTstamp, sonarphony::pingMsg_t const &aPing)
         // Sonar reported -3db beamwidths
         // May be empty if not reported
         // reported in radians
-        // TODO: Default for T-POD, but not the same for the other models
-        msg.ping_info.tx_beamwidths = std::vector<float> {30.0 * M_PI / 180.0};
-        msg.ping_info.rx_beamwidths = std::vector<float> {30.0 * M_PI / 180.0};
+        float const beamwidth = aPing.beamWidth() * M_PI/180.0;
+        msg.ping_info.tx_beamwidths = std::vector<float> {beamwidth};
+        msg.ping_info.rx_beamwidths = std::vector<float> {beamwidth};
 
         // Constants declaring whether each beam is good or bad.
         // This is implemented as an 8-bit masked value; it is possible for more
