@@ -1,4 +1,4 @@
 [submodule "ext/SonarPhony"]
 	path = ext/SonarPhony
-	url = git@github.com:scherererer/SonarPhony.git
-	branch = origin/dev-cmake
+	url = https://github.com/scherererer/SonarPhony.git
+	branch = origin/master
